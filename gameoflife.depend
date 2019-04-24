@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1465974371 source:/home/guru/Desktop/iot/gameoflife/main.c
+	<stdio.h>
+	<stdbool.h>
+	<stdlib.h>
+

@@ -68,6 +68,8 @@ void init_game ()
 	int y=0;
 	int x=0;
 
+    printf("Init game, add some pre filled living cells. Q will end init phase.");
+
     int newly=0, newlx =0;
     for (y=0; y < GRID_WIDTH; y++)  {
         for (x=0; x < GRID_HEIGTH; x++)  {

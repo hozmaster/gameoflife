@@ -33,8 +33,7 @@ typedef struct GridBoard
 GridBoard gridBoard[GRID_WIDTH][GRID_HEIGTH];
 GridBoard gridBoardTemp[GRID_WIDTH][GRID_HEIGTH];
 
-#define amount_living_ells = u8;
-
+#define AMOUNT_LIVING_CELLS 8
 
 void printLayout ()
 {
@@ -79,20 +78,34 @@ void random_init_game ()
 {
     int upper = GRID_WIDTH;
     int lower = 0;
-    int x, y = 0;
-    for (int i = 0; i < amount_cells; i++) {
+    int loop, x, y = 0;
+
+    for (loop = 0; loop < AMOUNT_LIVING_CELLS; loop++) {
         x = rand() % (upper - lower + 1) + lower;
         y = rand() % (upper - lower + 1) + lower;
         gridBoard[y][x].alive = true;
     }
 }
 
+int get_neighborous_count(int peek_x, int peek_y)
+{
+    printf (" %d, %d \n ", peek_y, peek_x);
+    int living_cells = 0;
+
+    int temp_x = peek_x;
+    int temp_y = peek_y;
+
+    if (temp_x - 1 >= 0 || temp_x + 1 <= GRID_WIDTH)  {
+
+    }
+}
+
 void proceedGame()
 {
     int neighborous_count = 0;
-    for ( int y = 0; y < GRID_WIDTH; y++ ) {
-        for ( int x = 0; x < GRID_HEIGTH; x++) {
-            get_neighborous_count (x,y);
+    for ( int x = 0; x < GRID_WIDTH; x++ ) {
+        for ( int y = 0; x < GRID_HEIGTH; y++) {
+            neighborous_count = get_neighborous_count (x,y);
         }
     }
 }
@@ -131,8 +144,8 @@ void init_game ()
 
 int main()
 {
-    char cmd='c';
-    int loop = 1;
+    //    char cmd='c';
+    //    int loop = 1;
     srand(time(0));
 
     random_init_game ();

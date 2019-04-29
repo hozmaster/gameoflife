@@ -2,8 +2,18 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define GRID_WIDTH  20
-#define GRID_HEIGTH 20
+#include <time.h>
+
+#define GRID_WIDTH  6
+#define GRID_HEIGTH 6
+
+//  O O O O O 0
+//  O O O O O 0
+//  O O O O O 0
+//  O O O O O 0
+//  O O O O O 0
+//  O O O O O 0
+
 
 char start_set [] = {
     0,0,0,
@@ -15,14 +25,16 @@ static int groundc = 0;
 static int start_living_grid_members = 0;
 static int end_living_grid_members = 0;
 
-typedef struct gridMember
+typedef struct GridBoard
 {
     bool alive;
-    int xcoord;
-    int ycoord;
-} gridMember;
+} GridBoard;
 
-gridMember grid[GRID_WIDTH][GRID_HEIGTH];
+GridBoard gridBoard[GRID_WIDTH][GRID_HEIGTH];
+GridBoard gridBoardTemp[GRID_WIDTH][GRID_HEIGTH];
+
+#define amount_living_ells = u8;
+
 
 void printLayout ()
 {
@@ -32,7 +44,7 @@ void printLayout ()
 	for (j=0; j<GRID_HEIGTH; j++) {
 		/* print each column position... */
 		for (i=0; i<GRID_WIDTH; i++) {
-			printf (" %2c ", grid[i][j].alive ? 'x' : 'o');
+            printf (" %2c ", gridBoard[i][j].alive ? 'X' : 'O');
 		}
 		/* followed by a carriage return */
 		printf ("\n");
@@ -48,7 +60,7 @@ int living_cells ()
 
     for (y=0; y < GRID_WIDTH; y++)  {
         for (x=0; x < GRID_HEIGTH; x++)  {
-            if (grid[y][x].alive == true) {
+            if (gridBoard[y][x].alive == true) {
                 cells_living++;
             }
         }
@@ -63,19 +75,39 @@ void save_status ()
 	fclose (op);
 }
 
+void random_init_game ()
+{
+    int upper = GRID_WIDTH;
+    int lower = 0;
+    int x, y = 0;
+    for (int i = 0; i < amount_cells; i++) {
+        x = rand() % (upper - lower + 1) + lower;
+        y = rand() % (upper - lower + 1) + lower;
+        gridBoard[y][x].alive = true;
+    }
+}
+
+void proceedGame()
+{
+    int neighborous_count = 0;
+    for ( int y = 0; y < GRID_WIDTH; y++ ) {
+        for ( int x = 0; x < GRID_HEIGTH; x++) {
+            get_neighborous_count (x,y);
+        }
+    }
+}
+
 void init_game ()
 {
 	int y=0;
 	int x=0;
 
-    printf("Init game, add some pre filled living cells. Q will end init phase.");
+    printf("Init game, add some pre filled living cells. q-char will end init phase.");
 
     int newly=0, newlx =0;
     for (y=0; y < GRID_WIDTH; y++)  {
         for (x=0; x < GRID_HEIGTH; x++)  {
-            grid[y][x].xcoord = x;
-            grid[y][x].ycoord = y;
-            grid[y][x].alive = false;
+            gridBoard[y][x].alive = false;
         }
     }
 
@@ -85,7 +117,7 @@ void init_game ()
         printf("Enter new living cell x (0-19) coord: ");
         scanf(" %d", &newlx);
         if ( (newly >= 0 && newly <= 19) && (newlx >= 0 && newlx <= 19) ) {
-            grid[newlx][newly].alive = true;
+            gridBoard[newlx][newly].alive = true;
         } else {
             printf(" Skip ...");
         }
@@ -101,10 +133,13 @@ int main()
 {
     char cmd='c';
     int loop = 1;
-    init_game ();
+    srand(time(0));
 
+    random_init_game ();
     printf ("living_cells : %d ", living_cells ());
+    printLayout ();
 
+    /*
     while (loop)  {
 		if (groundc != 0 && groundc % 50 == 0)  {
 			printf ("round : %d, q = quit, c = continue \n", groundc);
@@ -120,11 +155,11 @@ int main()
 				groundc ++;
 				// next round
 				printLayout ();
-
 				break;
 		}
 	}
 	save_status ();
 	printf ("\n");
+	*/
     return 0;
 }

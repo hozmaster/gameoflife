@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <time.h>
 
 #define GRID_WIDTH  6
-#define GRID_HEIGTH 6
+#define GRID_HEIGHT 6
+
+#define EMPTY_CELL  0
+#define LIVING_CELL 1
 
 //  O O O O O 0
 //  O O O O O 0
@@ -14,6 +18,12 @@
 //  O O O O O 0
 //  O O O O O 0
 
+// If the cell is alive:
+//    1. If it has 1 or no neighbors, it will turn "dead". As if by solitude.
+//    2. if it has 4 or more neighbors, it will turn "dead". As if by overpopulation.
+//    3. If it has 2 or 3 neighbors, it will remain "alive".
+// If the cell is dead:
+//    1. If it has exactly three neighbors, it will turn "alive", as if by regrowth
 
 char start_set [] = {
     0,0,0,
@@ -25,30 +35,51 @@ static int groundc = 0;
 static int start_living_grid_members = 0;
 static int end_living_grid_members = 0;
 
-typedef struct GridBoard
-{
-    bool alive;
-} GridBoard;
+int gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT];
 
-GridBoard gridBoard[GRID_WIDTH][GRID_HEIGTH];
-GridBoard gridBoardTemp[GRID_WIDTH][GRID_HEIGTH];
-
-#define AMOUNT_LIVING_CELLS 8
+#define AMOUNT_LIVING_CELLS 12
 
 void printLayout ()
 {
 	int	i, j;
 	/* for each row */
 	printf ("round %d \n\n", groundc);
-	for (j=0; j<GRID_HEIGTH; j++) {
+    for (j=0; j<GRID_WIDTH; j++) {
 		/* print each column position... */
-		for (i=0; i<GRID_WIDTH; i++) {
-            printf (" %2c ", gridBoard[i][j].alive ? 'X' : 'O');
+        for (i=0; i<GRID_HEIGHT; i++) {
+            printf (" %2c ", gameOfLifeBoard[i][j] ? 'X' : 'O');
 		}
 		/* followed by a carriage return */
 		printf ("\n");
 	}
 	printf ("\n");
+}
+
+//void printLayout (int *grid)
+//{
+//    int	i, j;
+//    /* for each row */
+//    printf ("round %d \n\n", groundc);
+//    for (j=0; j<GRID_WIDTH; j++) {
+//        /* print each column position... */
+//        for (i=0; i<GRID_HEIGHT; i++) {
+//            printf (" %2c ", gameOfLifeBoard[i][j] ? 'X' : 'O');
+//        }
+//        /* followed by a carriage return */
+//        printf ("\n");
+//    }
+//    printf ("\n");
+//}
+
+
+int get_neighborous_count(int y_t, int x_t)
+{
+    int count = 0;
+    for (int z = y_t -1; z <= y_t+1; z++)  {
+        for (int c = x_t - 1; c <= x_t + 1; c++ ) {
+            printf ("%d:%d\n", z,c);
+        }
+    }
 }
 
 int living_cells ()
@@ -57,20 +88,40 @@ int living_cells ()
     int y=0;
     int x=0;
 
+    int newBoard[GRID_WIDTH][GRID_HEIGHT];
+
     for (y=0; y < GRID_WIDTH; y++)  {
-        for (x=0; x < GRID_HEIGTH; x++)  {
-            if (gridBoard[y][x].alive == true) {
-                cells_living++;
+        for (x=0; x < GRID_HEIGHT; x++)  {
+            int is_alive = gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT];
+            int adjacents = get_neighborous_count(y,x);
+            switch (adjacents)  {
+                case 0:
+                case 1:
+                    newBoard[y][x] = EMPTY_CELL;
+                    break;
+                case 2:
+                case 3:
+                    if (is_alive)  {
+                        newBoard[y][x] = LIVING_CELL;
+                    } else {
+                        if (adjacents == 3)
+                            newBoard[y][x] = LIVING_CELL;
+                    }
+                    break;
+                default:
+                    newBoard[y][x] = EMPTY_CELL;
+                    break;
             }
         }
     }
+    printLayout();
     return cells_living;
 }
 
 void save_status ()
 {
 	FILE *op = fopen ("gameoflife.status", "a+");
-	fprintf (op, "\n starting : %d, end : %d ", start_living_grid_members, end_living_grid_members);
+    fprintf (op, "\n starting : %d, end : %d", start_living_grid_members, end_living_grid_members);
 	fclose (op);
 }
 
@@ -83,29 +134,18 @@ void random_init_game ()
     for (loop = 0; loop < AMOUNT_LIVING_CELLS; loop++) {
         x = rand() % (upper - lower + 1) + lower;
         y = rand() % (upper - lower + 1) + lower;
-        gridBoard[y][x].alive = true;
-    }
-}
-
-int get_neighborous_count(int peek_x, int peek_y)
-{
-    printf (" %d, %d \n ", peek_y, peek_x);
-    int living_cells = 0;
-
-    int temp_x = peek_x;
-    int temp_y = peek_y;
-
-    if (temp_x - 1 >= 0 || temp_x + 1 <= GRID_WIDTH)  {
-
+        gameOfLifeBoard[y][x] = LIVING_CELL;
     }
 }
 
 void proceedGame()
 {
     int neighborous_count = 0;
+    int y, x, temp, tempBoard[GRID_WIDTH][GRID_HEIGHT];
+
     for ( int x = 0; x < GRID_WIDTH; x++ ) {
-        for ( int y = 0; x < GRID_HEIGTH; y++) {
-            neighborous_count = get_neighborous_count (x,y);
+        for ( int y = 0; x < GRID_HEIGHT; y++) {
+            neighborous_count = get_neighborous_count (x,y);            
         }
     }
 }
@@ -117,62 +157,21 @@ void init_game ()
 
     printf("Init game, add some pre filled living cells. q-char will end init phase.");
 
-    int newly=0, newlx =0;
-    for (y=0; y < GRID_WIDTH; y++)  {
-        for (x=0; x < GRID_HEIGTH; x++)  {
-            gridBoard[y][x].alive = false;
-        }
-    }
-
-    while (1) {
-        printf("Enter new living cell y (0-19) coord: ");
-        scanf(" %d", &newly);
-        printf("Enter new living cell x (0-19) coord: ");
-        scanf(" %d", &newlx);
-        if ( (newly >= 0 && newly <= 19) && (newlx >= 0 && newlx <= 19) ) {
-            gridBoard[newlx][newly].alive = true;
-        } else {
-            printf(" Skip ...");
-        }
-
-        if ( newly == -1 && newlx == -1)  {
-            break;
-        }
-        printLayout ();
-    }
 }
 
 int main()
 {
-    //    char cmd='c';
-    //    int loop = 1;
     srand(time(0));
-
-    random_init_game ();
-    printf ("living_cells : %d ", living_cells ());
+    memset(*gameOfLifeBoard, sizeof(gameOfLifeBoard), 0);
+    random_init_game();
     printLayout ();
 
-    /*
-    while (loop)  {
-		if (groundc != 0 && groundc % 50 == 0)  {
-			printf ("round : %d, q = quit, c = continue \n", groundc);
-			scanf(" %c", &cmd);
-		} else {
-			char cmd='c';
-		}
-		switch (cmd) {
-			case 'q':
-				loop = 0;
-				break;
-			case 'c':
-				groundc ++;
-				// next round
-				printLayout ();
-				break;
-		}
-	}
-	save_status ();
-	printf ("\n");
-	*/
+    get_neighborous_count(0,0);
+    get_neighborous_count(3,3);
+
+
+    //    random_init_game ();
+    //    printf ("living_cells : %d ", living_cells ());
+    //    printLayout ();
     return 0;
 }

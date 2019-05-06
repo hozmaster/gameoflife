@@ -5,18 +5,11 @@
 
 #include <time.h>
 
-#define GRID_WIDTH  6
-#define GRID_HEIGHT 6
+#define GRID_WIDTH  10
+#define GRID_HEIGHT 10
 
 #define EMPTY_CELL  0
 #define LIVING_CELL 1
-
-//  O O O O O 0
-//  O O O O O 0
-//  O O O O O 0
-//  O O O O O 0
-//  O O O O O 0
-//  O O O O O 0
 
 // If the cell is alive:
 //    1. If it has 1 or no neighbors, it will turn "dead". As if by solitude.
@@ -25,29 +18,41 @@
 // If the cell is dead:
 //    1. If it has exactly three neighbors, it will turn "alive", as if by regrowth
 
-char start_set [] = {
-    0,0,0,
-    1,1,1,
-    0,0,0
-};
+int gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT] =
+    {   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    };
 
-static int groundc = 0;
-static int start_living_grid_members = 0;
-static int end_living_grid_members = 0;
+int testBoard [GRID_WIDTH][GRID_HEIGHT] =
+    {   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    };
 
-int gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT];
-
-#define AMOUNT_LIVING_CELLS 15
+#define AMOUNT_LIVING_CELLS 27
 
 void printLayout ()
 {
 	int	i, j;
-	/* for each row */
-	printf ("round %d \n\n", groundc);
     for (j=0; j<GRID_WIDTH; j++) {
 		/* print each column position... */
         for (i=0; i<GRID_HEIGHT; i++) {
-            printf (" %2c ", gameOfLifeBoard[i][j] ? 'X' : 'O');
+            printf (" %2c ", gameOfLifeBoard[j][i] ? 'X' : 'O');
 		}
 		/* followed by a carriage return */
 		printf ("\n");
@@ -58,65 +63,84 @@ void printLayout ()
 int get_neighborous_count(int y_t, int x_t)
 {
     int count = 0;
-    for (int z = y_t -1; z <= y_t+1; z++)  {
-        for (int c = x_t - 1; c <= x_t + 1; c++ ) {
-            if (z < 0 || z > GRID_WIDTH)
+    for (int z = y_t -1; z <= y_t; z++)  {
+        for (int c = x_t - 1; c <= x_t;  c++ ) {
+            if (z < 0 )
                 continue;
-            if (c < 0 || c > GRID_HEIGHT)
+            if (c < 0 )
                 continue;
-            if (z != y_t && c != x_t)
+             if(!(z == 0 && c == 0)) {
                 // this works on if cell value is 0 or 1 ...
                 count += gameOfLifeBoard[z][c];
+            }
         }
     }
     return count;
 }
 
-int living_cells ()
+
+void print_grid ( int *theBoard )
+{
+    for (int i = 0; i < GRID_WIDTH; i++) {
+      for (int j = 0; j < GRID_HEIGHT; j++) {
+        printf (" %2c ", *(theBoard + i * GRID_HEIGHT + j) ? 'X' : '0');
+      }
+      printf("\n");
+    }
+}
+
+int play_game ()
 {
     int cells_living = 0;
     int y=0;
     int x=0;
 
-    int newBoard[GRID_WIDTH][GRID_HEIGHT];
+    // create the board and set it to zero
+    int newBoard[GRID_WIDTH][GRID_HEIGHT];    
+    memcpy(newBoard, gameOfLifeBoard, sizeof(gameOfLifeBoard));
+    print_grid(newBoard);
 
-    memcpy (newBoard, &gameOfLifeBoard, sizeof(gameOfLifeBoard));
+    int loop = 1;
+    while (loop) {
 
-    for (y=0; y < GRID_WIDTH; y++)  {
-        for (x=0; x < GRID_HEIGHT; x++)  {
-            int is_alive = gameOfLifeBoard[y][x];
-            int adjacents = get_neighborous_count(y,x);
-            switch (adjacents)  {
-                case 0:
-                case 1:
-                    newBoard[y][x] = EMPTY_CELL;
-                    break;
-                case 2:
-                case 3:
-                    if (is_alive)  {
-                        newBoard[y][x] = LIVING_CELL;
-                    } else {
-                        if (adjacents == 3)
-                            newBoard[y][x] = LIVING_CELL;
-                    }
-                    break;
-                default:
-                    newBoard[y][x] = EMPTY_CELL;
-                    break;
-            }
-        }
+        loop = 0;   // for testing purposes ...
     }
-    memcpy (gameOfLifeBoard, &newBoard, sizeof(gameOfLifeBoard));
-    printLayout();
+
+    //    for (y=0; y < GRID_WIDTH; y++)  {
+    //        for (x=0; x < GRID_HEIGHT; x++)  {
+    //            int is_alive = gameOfLifeBoard[y][x];
+    //            int adjacents = get_neighborous_count(y,x);
+    //            switch (adjacents)  {
+    //                case 0:
+    //                case 1:
+    //                    newBoard[y][x] = EMPTY_CELL;
+    //                    break;
+    //                case 2:
+    //                case 3:
+    //                    if (is_alive)  {
+    //                        newBoard[y][x] = LIVING_CELL;
+    //                    } else {
+    //                        if (adjacents == 3)
+    //                            newBoard[y][x] = LIVING_CELL;
+    //                    }
+    //                    break;
+    //                default:
+    //                    newBoard[y][x] = EMPTY_CELL;
+    //                    break;
+    //            }
+    //        }
+    //}
+    //    memcpy (gameOfLifeBoard, newBoard, sizeof(gameOfLifeBoard));
+    //    printLayout();
     return cells_living;
 }
 
-void save_status ()
-{
-	FILE *op = fopen ("gameoflife.status", "a+");
-    fprintf (op, "\n starting : %d, end : %d", start_living_grid_members, end_living_grid_members);
-	fclose (op);
-}
+//void save_status ()
+//{
+//	FILE *op = fopen ("gameoflife.status", "a+");
+//    fprintf (op, "\n starting : %d, end : %d", start_living_grid_members, end_living_grid_members);
+//	fclose (op);
+//}
 
 void random_init_game ()
 {
@@ -143,33 +167,9 @@ void proceedGame()
     }
 }
 
-void init_game ()
-{
-	int y=0;
-	int x=0;
-
-    printf("Init game, add some pre filled living cells. q-char will end init phase.");
-
-}
-
 int main()
 {
     srand(time(0));
-    memset(*gameOfLifeBoard, sizeof(gameOfLifeBoard), 0);
-
-    random_init_game();
-    printLayout ();
-    for (int f =0; f< 40; f++) {
-        living_cells();
-        groundc++;
-    }
-
-    int count = get_neighborous_count(0,0);
-    get_neighborous_count(3,3);
-
-
-    //    random_init_game ();
-    //    printf ("living_cells : %d ", living_cells ());
-    //    printLayout ();
+    play_game();
     return 0;
 }

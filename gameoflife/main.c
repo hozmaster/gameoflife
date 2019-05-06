@@ -37,7 +37,7 @@ static int end_living_grid_members = 0;
 
 int gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT];
 
-#define AMOUNT_LIVING_CELLS 12
+#define AMOUNT_LIVING_CELLS 15
 
 void printLayout ()
 {
@@ -55,31 +55,21 @@ void printLayout ()
 	printf ("\n");
 }
 
-//void printLayout (int *grid)
-//{
-//    int	i, j;
-//    /* for each row */
-//    printf ("round %d \n\n", groundc);
-//    for (j=0; j<GRID_WIDTH; j++) {
-//        /* print each column position... */
-//        for (i=0; i<GRID_HEIGHT; i++) {
-//            printf (" %2c ", gameOfLifeBoard[i][j] ? 'X' : 'O');
-//        }
-//        /* followed by a carriage return */
-//        printf ("\n");
-//    }
-//    printf ("\n");
-//}
-
-
 int get_neighborous_count(int y_t, int x_t)
 {
     int count = 0;
     for (int z = y_t -1; z <= y_t+1; z++)  {
         for (int c = x_t - 1; c <= x_t + 1; c++ ) {
-            printf ("%d:%d\n", z,c);
+            if (z < 0 || z > GRID_WIDTH)
+                continue;
+            if (c < 0 || c > GRID_HEIGHT)
+                continue;
+            if (z != y_t && c != x_t)
+                // this works on if cell value is 0 or 1 ...
+                count += gameOfLifeBoard[z][c];
         }
     }
+    return count;
 }
 
 int living_cells ()
@@ -90,9 +80,11 @@ int living_cells ()
 
     int newBoard[GRID_WIDTH][GRID_HEIGHT];
 
+    memcpy (newBoard, &gameOfLifeBoard, sizeof(gameOfLifeBoard));
+
     for (y=0; y < GRID_WIDTH; y++)  {
         for (x=0; x < GRID_HEIGHT; x++)  {
-            int is_alive = gameOfLifeBoard[GRID_WIDTH][GRID_HEIGHT];
+            int is_alive = gameOfLifeBoard[y][x];
             int adjacents = get_neighborous_count(y,x);
             switch (adjacents)  {
                 case 0:
@@ -114,6 +106,7 @@ int living_cells ()
             }
         }
     }
+    memcpy (gameOfLifeBoard, &newBoard, sizeof(gameOfLifeBoard));
     printLayout();
     return cells_living;
 }
@@ -163,10 +156,15 @@ int main()
 {
     srand(time(0));
     memset(*gameOfLifeBoard, sizeof(gameOfLifeBoard), 0);
+
     random_init_game();
     printLayout ();
+    for (int f =0; f< 40; f++) {
+        living_cells();
+        groundc++;
+    }
 
-    get_neighborous_count(0,0);
+    int count = get_neighborous_count(0,0);
     get_neighborous_count(3,3);
 
 

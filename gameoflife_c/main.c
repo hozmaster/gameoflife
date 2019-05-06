@@ -46,20 +46,6 @@ int testBoard [GRID_WIDTH][GRID_HEIGHT] =
 
 #define AMOUNT_LIVING_CELLS 27
 
-void printLayout ()
-{
-	int	i, j;
-    for (j=0; j<GRID_WIDTH; j++) {
-		/* print each column position... */
-        for (i=0; i<GRID_HEIGHT; i++) {
-            printf (" %2c ", gameOfLifeBoard[j][i] ? 'X' : 'O');
-		}
-		/* followed by a carriage return */
-		printf ("\n");
-	}
-	printf ("\n");
-}
-
 int get_neighborous_count(int y_t, int x_t)
 {
     int count = 0;
@@ -102,34 +88,32 @@ int play_game ()
 
     int loop = 1;
     while (loop) {
-
         loop = 0;   // for testing purposes ...
-    }
-
-    //    for (y=0; y < GRID_WIDTH; y++)  {
-    //        for (x=0; x < GRID_HEIGHT; x++)  {
-    //            int is_alive = gameOfLifeBoard[y][x];
-    //            int adjacents = get_neighborous_count(y,x);
-    //            switch (adjacents)  {
-    //                case 0:
-    //                case 1:
-    //                    newBoard[y][x] = EMPTY_CELL;
-    //                    break;
-    //                case 2:
-    //                case 3:
-    //                    if (is_alive)  {
-    //                        newBoard[y][x] = LIVING_CELL;
-    //                    } else {
-    //                        if (adjacents == 3)
-    //                            newBoard[y][x] = LIVING_CELL;
-    //                    }
-    //                    break;
-    //                default:
-    //                    newBoard[y][x] = EMPTY_CELL;
-    //                    break;
-    //            }
-    //        }
-    //}
+        for (y=0; y < GRID_WIDTH; y++)  {
+            for (x=0; x < GRID_HEIGHT; x++)  {
+                int is_alive = gameOfLifeBoard[y][x];
+                int adjacents = get_neighborous_count(y,x);
+                switch (adjacents)  {
+                    case 0:
+                    case 1:
+                        newBoard[y][x] = EMPTY_CELL;
+                        break;
+                    case 2:
+                    case 3:
+                        if (is_alive)  {
+                            newBoard[y][x] = LIVING_CELL;
+                        } else {
+                            if (adjacents == 3)
+                                newBoard[y][x] = LIVING_CELL;
+                        }
+                        break;
+                    default:
+                        newBoard[y][x] = EMPTY_CELL;
+                        break;
+                }
+            }
+        }
+     }
     //    memcpy (gameOfLifeBoard, newBoard, sizeof(gameOfLifeBoard));
     //    printLayout();
     return cells_living;

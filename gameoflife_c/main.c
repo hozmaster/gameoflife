@@ -73,49 +73,50 @@ void print_grid ( int *theBoard )
       }
       printf("\n");
     }
+    printf ("\n\n");
 }
 
 int play_game ()
 {
-    int cells_living = 0;
     int y=0;
     int x=0;
 
     // create the board and set it to zero
-    int newBoard[GRID_WIDTH][GRID_HEIGHT];    
-    memcpy(newBoard, gameOfLifeBoard, sizeof(gameOfLifeBoard));
+    int baseBoard[GRID_WIDTH][GRID_HEIGHT];
+    memcpy(baseBoard, gameOfLifeBoard, sizeof(gameOfLifeBoard));
     int nextBoard[GRID_WIDTH][GRID_HEIGHT] = {0};
 
-    int loop = 1;
-    while (loop) {
-        loop = 0;   // for testing purposes ...
+    int loop = 0;
+    while (1) {
         for (y=0; y < GRID_WIDTH; y++)  {
             for (x=0; x < GRID_HEIGHT; x++)  {
                 int adjacent_cnt = 0;
-                for (int j=0; j < 2; j++) {
-                    for (int m = 0; m < 2; m++) {
-                        adjacent_cnt += newBoard[y + j][x + m];
+                for (int j=0; j < 3; j++) {
+                    for (int m = 0; m < 3; m++) {
+                        adjacent_cnt += baseBoard[y + j][x + m];
                     }
                 }
-                adjacent_cnt -= newBoard[y][x];
+                // adjacent_cnt -= baseBoard[y][x];
 
-                if ( (newBoard[y][x] == 1) && (adjacent_cnt < 2))
+                if ( (baseBoard[y][x] == 1) && (adjacent_cnt < 2))
                     nextBoard[y][x] = 0;
-                else if ( (newBoard[y][x] == 1) && (adjacent_cnt > 3))
+                else if ( (baseBoard[y][x] == 1) && (adjacent_cnt > 3))
                     nextBoard[y][x] = 0;
-                else if ( (newBoard[y][x] == 0) && (adjacent_cnt == 3))
+                else if ( (baseBoard[y][x] == 0) && (adjacent_cnt == 3))
                     nextBoard[y][x] = 1;
-                else
-                    nextBoard[y][x] = newBoard[y][x];
+                else {
+                    nextBoard[y][x] = baseBoard[y][x];
+                }
+
             }
         }
-     }
-    print_grid(nextBoard);
-
-    int is_same = memcmp(nextBoard, testBoard, sizeof(nextBoard));
-    printf (" grids are equal : %d\n", is_same);
-
-    return cells_living;
+        loop ++;
+        memcpy(baseBoard, nextBoard, sizeof(baseBoard));
+        print_grid(baseBoard);
+        if (loop>10)
+            break;
+    }
+    return 0;
 }
 
 //void save_status ()
